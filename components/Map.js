@@ -1,6 +1,6 @@
 
 import React, { Component } from 'react';
-import { Button, View, Text, PropTypes, Image } from 'react-native';
+import { Button, View, Text, PropTypes, Image, FlatList } from 'react-native';
 import { ActivityIndicator } from 'react-native';
 import * as Font from "expo-font";
 import * as Location from "expo-location";
@@ -15,12 +15,20 @@ class Map extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            number: 0
+            number: 0,
+            mapa: []
         };
     }
-
-
+    componentDidMount() {
+        let mapa2 = this.props.route.params.filter(element => element != undefined);
+        console.log("AAAAA");
+        console.log(mapa2);
+        this.setState({ mapa: mapa2 })
+    }
     render() {
+        console.log(this.state.mapa);
+
+
 
         return (
 
@@ -33,19 +41,24 @@ class Map extends Component {
                     longitudeDelta: 0.001,
                 }}
             >
-                <MapView.Marker
-                    coordinate={{
-                        latitude: this.props.route.params.coords.latitude,
-                        longitude: this.props.route.params.coords.longitude,
-                    }}
-                    title={"pos"}
-                    description={"opis"}
-                />
+                {this.state.mapa.map((val, index) => {
+                    return (<MapView.Marker
+                        coordinate={{
+                            latitude: val.lat,
+                            longitude: val.long
+                        }}
+                        key={index}
+                        title={val.id + ""}
+                        description={val.time + ""}
+                    />);
+                })}
+
             </MapView>
 
         );
     }
 }
+/**/
 
 const styles = {
     item: {

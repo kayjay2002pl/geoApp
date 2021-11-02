@@ -1,6 +1,6 @@
 
 import React, { Component } from 'react';
-import { Button, View, Text, PropTypes, Image, FlatList } from 'react-native';
+import { Switch, View, Text, PropTypes, Image, FlatList } from 'react-native';
 import { ActivityIndicator } from 'react-native';
 import * as Font from "expo-font";
 import * as Location from "expo-location";
@@ -16,10 +16,12 @@ class Main extends Component {
         super(props);
         this.state = {
             number: 0,
-            items: []
+            items: [],
+            boolik: false
         };
         this.sendToMap = this.sendToMap.bind(this);
         this.handleSwitch = this.handleSwitch.bind(this);
+        this.handle = this.handle.bind(this)
     }
     setPermissions = async () => {
         let { status } = await Location.requestForegroundPermissionsAsync();
@@ -62,15 +64,30 @@ class Main extends Component {
         this.setPermissions()
     }
     sendToMap = async () => {
-        let val = await AsyncStorage.getItem('key1')
-        val = JSON.parse(val)
-        console.log(val.coords);
-        this.props.navigation.navigate("Map", val)
+        //let val = await AsyncStorage.getItem('key1')
+        //val = JSON.parse(val)
+        //console.log(val.coords);
+        let map = this.state.items.map(result => {
+            console.log(result);
+            if (result.flag) {
+                return result;
+            }
+        });
+        console.log(map);
+        this.props.navigation.navigate("Map", map)
     }
     handleSwitch(id) {
         let temp = this.state.items
         temp[id].flag = !temp[id].flag
         this.setState({ items: temp })
+    }
+    handle() {
+        let temp = !this.state.boolik
+        this.setState({ boolik: temp })
+        console.log(temp);
+        this.state.items.forEach(element => {
+            element.flag = temp
+        });
     }
 
     render() {
@@ -99,6 +116,13 @@ class Main extends Component {
                         func={this.sendToMap}
                         size={40}
                     ></MyButton>
+                    <Switch
+                        trackColor={{ false: "#767577", true: "#81b0ff" }}
+                        thumbColor={this.props.flag ? "#f5dd4b" : "#f4f3f4"}
+                        ios_backgroundColor="#3e3e3e"
+                        onChange={this.handle}
+                        value={this.state.boolik}
+                    />
                     <FlatList
                         style={styles.flatlist}
                         data={this.state.items}
