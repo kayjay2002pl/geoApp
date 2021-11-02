@@ -21,16 +21,16 @@ class Listitem extends Component {
     render() {
         return (
             <View style={styles.item}>
-                <Image source={this.state.img} />
-                <View>
+                <Image style={styles.con} source={this.state.img} />
+                <View style={styles.con}>
                     <Text style={styles.text}>{this.props.time}</Text>
-                    <Text style={styles.text}>{this.props.lat}</Text>
-                    <Text style={styles.text}>{this.props.long}</Text>
+                    <Text style={styles.text2}>{this.props.lat}</Text>
+                    <Text style={styles.text2}>{this.props.long}</Text>
 
                 </View>
-                <Switch
+                <Switch style={styles.con}
                     trackColor={{ false: "#767577", true: "#81b0ff" }}
-                    thumbColor={this.props.flag ? "#f5dd4b" : "#f4f3f4"}
+                    thumbColor={this.props.flag ? "#FFCCBC" : "#f4f3f4"}
                     ios_backgroundColor="#3e3e3e"
                     onChange={this.handle}
                     value={this.props.flag}
@@ -58,7 +58,15 @@ const styles = {
         paddingLeft: 10,
     },
     text: {
-        fontSize: 20
+        fontSize: 20,
+        color: "#212121"
+    },
+    text2: {
+        fontSize: 10,
+        color: "#757575"
+    },
+    con: {
+        marginLeft: 10,
     }
 }
 export default Listitem;

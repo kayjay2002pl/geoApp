@@ -1,6 +1,6 @@
 
 import React, { Component } from 'react';
-import { Switch, View, Text, PropTypes, Image, FlatList } from 'react-native';
+import { Switch, View, Text, PropTypes, Image, FlatList, Alert } from 'react-native';
 import { ActivityIndicator } from 'react-native';
 import * as Font from "expo-font";
 import * as Location from "expo-location";
@@ -17,7 +17,10 @@ class Main extends Component {
         this.state = {
             number: 0,
             items: [],
-            boolik: false
+            boolik: false,
+            perm: false,
+            isloading: false,
+            any: false
         };
         this.sendToMap = this.sendToMap.bind(this);
         this.handleSwitch = this.handleSwitch.bind(this);
@@ -27,24 +30,35 @@ class Main extends Component {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
             alert('odmawiam przydzielenia uprawnień do czytania lokalizacji')
+        } else {
+            this.setState({ perm: true })
         }
+
     }
     setData2 = async () => {
+        console.log("ide");
         //await AsyncStorage.setItem('key1', 'value1');
-        let pos = await Location.getCurrentPositionAsync({ maximumAge: 0 })
-        await AsyncStorage.setItem('key' + Math.floor(Math.random() * 100), JSON.stringify(pos, null, 4));
-        let keys = await AsyncStorage.getAllKeys();
-        let stores = await AsyncStorage.multiGet(keys);
-        let maps = stores.map((result, i, store) => {
-            let value = JSON.parse(store[i][1]);
-            let item = { id: i, time: value.timestamp, lat: value.coords.latitude, long: value.coords.longitude, flag: false }
-            return item;
-        });
-
-        this.setState({ items: maps })
+        if (this.state.perm) {
+            console.log("id2e");
+            this.setState({ isloading: true })
+            let pos = await Location.getCurrentPositionAsync({})
+            await AsyncStorage.setItem('key' + Math.floor(Math.random() * 100), JSON.stringify(pos, null, 4));
+            let keys = await AsyncStorage.getAllKeys();
+            let stores = await AsyncStorage.multiGet(keys);
+            let maps = stores.map((result, i, store) => {
+                let value = JSON.parse(store[i][1]);
+                let item = { id: i, time: value.timestamp, lat: value.coords.latitude, long: value.coords.longitude, flag: false }
+                return item;
+            });
+            this.setState({ items: maps })
+            this.setState({ isloading: false })
+        } else {
+            console.log("BUG");
+        }
 
     }
     getData = async () => {
+        this.setState({ isloading: true })
         await AsyncStorage.clear()
         let keys = await AsyncStorage.getAllKeys();
         let stores = await AsyncStorage.multiGet(keys);
@@ -55,6 +69,7 @@ class Main extends Component {
         });
 
         this.setState({ items: maps })
+        this.setState({ isloading: false })
     }
     componentDidMount = async () => {
         await Font.loadAsync({
@@ -62,19 +77,39 @@ class Main extends Component {
         });
         this.setState({ fontloaded: true })
         this.setPermissions()
+        this.setState({ isloading: true })
+        let keys = await AsyncStorage.getAllKeys();
+        let stores = await AsyncStorage.multiGet(keys);
+        let maps = stores.map((result, i, store) => {
+            let value = JSON.parse(store[i][1]);
+            let item = { id: i, time: value.timestamp, lat: value.coords.latitude, long: value.coords.longitude, flag: false }
+            return item;
+        });
+
+        this.setState({ items: maps })
+        this.setState({ isloading: false })
     }
     sendToMap = async () => {
         //let val = await AsyncStorage.getItem('key1')
         //val = JSON.parse(val)
         //console.log(val.coords);
+        let any = false;
         let map = this.state.items.map(result => {
             console.log(result);
             if (result.flag) {
+                any = true;
                 return result;
             }
         });
         console.log(map);
-        this.props.navigation.navigate("Map", map)
+        if (any) {
+            this.props.navigation.navigate("Map", map)
+        } else {
+            Alert.alert(
+                "NIC NIE WYBRANO"
+            )
+        }
+
     }
     handleSwitch(id) {
         let temp = this.state.items
@@ -95,24 +130,24 @@ class Main extends Component {
 
             this.state.fontloaded
                 ?
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1, margin: 10 }}>
                     <Text style={{
                         fontFamily: 'myfont',
                         fontSize: 100
-                    }}>Test</Text>
+                    }}>Geolocation</Text>
 
                     <MyButton
-                        title="DODAJ.2"
+                        title="Dodaj twoją aktualną lokalizację"
                         func={this.setData2}
                         size={40}
                     ></MyButton>
                     <MyButton
-                        title="CZYTAJ"
+                        title="usuń wszystkie wpisy"
                         func={this.getData}
                         size={40}
                     ></MyButton>
                     <MyButton
-                        title="CZYTAJ WSZYSTKO"
+                        title="pokaż zaznaczone lokalizacje na mapie"
                         func={this.sendToMap}
                         size={40}
                     ></MyButton>
@@ -123,6 +158,14 @@ class Main extends Component {
                         onChange={this.handle}
                         value={this.state.boolik}
                     />
+                    <View style={{ flex: 1 }}>
+                        {
+                            this.state.isloading == true ?
+                                <ActivityIndicator size="large" color="#0000ff" />
+                                :
+                                <Text />
+                        }
+                    </View>
                     <FlatList
                         style={styles.flatlist}
                         data={this.state.items}
